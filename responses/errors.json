@@ -1,0 +1,6 @@
+{
+  "userService" : {
+    "code": "00001",
+    "message": "Error retreiving data from user service"
+  }
+}
