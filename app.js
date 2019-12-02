@@ -17,7 +17,7 @@ indexRouter(router);
 
 app.use(router);
 
-// error handler
+// Error handler
 app.use((err, req, res, next) => {
   return res.status(err.status || 500).send(JSON.parse(err.message));
 });
