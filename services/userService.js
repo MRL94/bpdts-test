@@ -17,11 +17,12 @@ module.exports = {
    * @description Retrieves a list of users from the bpdts API who are defined as living in London
    * @returns {array} List of London-based users
    */
-  async fetchLondonUsers() {
+  async fetchUsersByCity(city) {
     const options = {
-      uri: 'https://bpdts-test-app.herokuapp.com/city/London/users',
+      uri: `https://bpdts-test-app.herokuapp.com/city/${city}/users`,
     };
-    return request(options);
+    const response = await request(options);
+    return JSON.parse(response);
   },
 
 };

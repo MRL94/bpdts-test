@@ -2,6 +2,7 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const { describe, it } = require('mocha');
+const sinon = require('sinon');
 const nock = require('nock');
 const app = require('../../app');
 const { userList, londonUsers } = require('../mockData/userList.json');
@@ -18,12 +19,26 @@ describe('userHandler.js', () => {
       chai.request(app)
         .get('/users')
         .end((err, res) => {
-          console.log(res.error);
           assert.deepEqual(res.statusCode, 200);
           expect(res.body).to.be.an('array');
           done();
         });
     });
+
+    it.only('should not try to concat both arrays if no users are listed as living in London', (done) => {
+      nock('https://bpdts-test-app.herokuapp.com').get('/users').once().reply(200, userList);
+      nock('https://bpdts-test-app.herokuapp.com').get('/city/London/users').reply(200, []);
+      chai.request(app)
+        .get('/users')
+        .end((err, res) => {
+          const spy = sinon.spy(Array.concat);
+          assert(spy.notCalled);
+          assert.deepEqual(res.statusCode, 200);
+          expect(res.body).to.be.an('array');
+          done();
+        });
+    });
+
 
     it('should return a 500 response if an error occurs whilst retrieving users', (done) => {
       chai.request(app)

@@ -1,16 +1,11 @@
 const geolib = require('geolib');
 const userService = require('../services/userService');
 const { userServiceError } = require('../responses/errors');
+const constants = require('../constants');
 
 module.exports = {
 
   async getAllUsers(req, res, next) {
-    // Define constants for api calls and comparisons
-    const LONDON_COORDINATES = {
-      latitude: 51.5074,
-      longitude: 0.1278,
-    };
-    const FIFTY_MILES_IN_METRES = 80467;
     let response;
     let londonUsers;
 
@@ -34,22 +29,25 @@ module.exports = {
         latitude: users[i].latitude,
         longitude: users[i].longitude,
       };
-      const distance = geolib.getDistance(LONDON_COORDINATES, userCoordinates);
-      if (distance < FIFTY_MILES_IN_METRES) {
+      const distance = geolib.getDistance(constants.LONDON.COORDINATES, userCoordinates);
+      if (distance < constants.FIFTY_MILES_IN_METRES) {
         withinLondon.push(users[i]);
       }
     }
     // Fetch all users from the bpdts API who are listed as living in London.
     try {
-      londonUsers = await userService.fetchLondonUsers();
+      londonUsers = await userService.fetchUsersByCity(constants.LONDON.NAME);
     } catch (err) {
       const error = new Error(JSON.stringify(userServiceError));
       error.status = err.statusCode;
       return next(error);
     }
+    if (!londonUsers.length) {
+      console.warn('No users found listed as living in London');
+      return res.send(withinLondon);
+    }
 
-    const allLondonUsers = withinLondon.concat(JSON.parse(londonUsers));
-
+    const allLondonUsers = withinLondon.concat(londonUsers);
     return res.send(allLondonUsers);
   },
 };
